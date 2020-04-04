@@ -1,5 +1,4 @@
-
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, Subject } from 'rxjs';
 
 const observer: Observer<any> = {
     next: value => console.log( 'next [next]: ', value),
@@ -7,43 +6,19 @@ const observer: Observer<any> = {
     complete: () => console.info( 'complete [obs]' )
 };
 
-const intervalo$ = new Observable<number>( subscriber => {
-    let count = 0;
-    const interval = setInterval( () => {
-        count++;         
-        subscriber.next(count);
-        console.log(count);
-    }, 1000);
+const intervalo$ = new Observable<number>( subs => {
+    const intervalID = setInterval( 
+        () => subs.next( Math.random() ), 4000 
+    );
+    return () => clearInterval( intervalID );
+    console.log('Intervalo destruido');
+} );
 
-    setTimeout( ()=> {
-        subscriber.complete();
-    }, 2500 );
+const subject$ = new Subject();
+intervalo$.subscribe(subject$);
 
-    return () => {
-        clearInterval(interval);
-        console.log('Destroyed interval');
-    }
-}); 
+// const subs1 = intervalo$.subscribe( console.log );
+// const subs2 = intervalo$.subscribe( console.log );
 
-// const subs1 = intervalo$.subscribe ( num => console.log( 'Num: ', num ) );
-// const subs2 = intervalo$.subscribe ( num => console.log( 'Num: ', num ) );
-// const subs3 = intervalo$.subscribe ( num => console.log( 'Num: ', num ) );
-
-const subs1 = intervalo$.subscribe();
-const subs2 = intervalo$.subscribe();
-const subs3 = intervalo$.subscribe();
-
-// setTimeout(() => {
-//     subs1.unsubscribe();
-//     subs2.unsubscribe();
-//     subs3.unsubscribe();
-//     console.log('Complete timeout.');
-// }, 3000);
-
-subs1.add( subs2 )
-     .add( subs3 );
-
-setTimeout(() => {
-    subs1.unsubscribe();
-    console.log('Complete timeout.');
-}, 3000);
+const subs1 = subject$.subscribe( rnd => console.log('subs1: ', rnd) );
+const subs2 = subject$.subscribe( rnd => console.log('subs2: ', rnd) );
